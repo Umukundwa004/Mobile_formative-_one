@@ -114,3 +114,72 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
+class _SignUpScreenState extends State<SignUpScreen> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final List<String> _courses = [
+    'Introduction to Linux and Unix',
+    'Introduction to Python Programming',
+    'Front End Web Development',
+  ];
+  final List<String> _selectedCourses = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // ... previous scaffold code ...
+      child: Column(
+        children: [
+          // ... previous widgets (icon, title, white container with fields) ...
+          const SizedBox(height: 24),
+          // Select Your Courses
+          const Text(
+            'Select Your Courses',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A2C5A),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Course Buttons
+          ..._courses.map((course) {
+            final isSelected = _selectedCourses.contains(course);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedCourses.remove(course);
+                    } else {
+                      _selectedCourses.add(course);
+                    }
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFF1A2C5A)
+                        : const Color(0xFF2C4A7E),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    course,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+}
