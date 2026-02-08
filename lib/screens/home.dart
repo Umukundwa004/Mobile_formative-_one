@@ -100,4 +100,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+import 'package:flutter/material.dart';
+import 'dashboard.dart';
+import 'assignments.dart';
+import 'announcements.dart';
+import 'risk_status.dart';
 
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _screens = [
+    const DashboardScreen(),
+    const AssignmentsScreen(),
+    const AnnouncementsScreen(),
+    const RiskStatusScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1A2C5A),
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        // ... existing navigation bar code ...
+      ),
+    );
+  }
+}
