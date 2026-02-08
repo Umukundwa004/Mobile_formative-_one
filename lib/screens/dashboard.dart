@@ -96,3 +96,76 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
+
+import 'package:flutter/material.dart';
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // ... app bar code ...
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // All Selected Courses Dropdown
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2C4A7E),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'All Selected Courses',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                ],
+              ),
+            ),
+
+            // ATRISK WARNING Button
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE53935),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.warning, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'ATRISK WARNING',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ... stats row from previous commit ...
+          ],
+        ),
+      ),
+    );
+  }
+}
