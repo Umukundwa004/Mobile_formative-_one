@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../data_provider.dart';
+import '../models/models.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
+
+  String _getWeekNumber(DateTime date) {
+    final jan4 = DateTime(date.year, 1, 4);
+    final dayOfYear = date.difference(jan4).inDays;
+    return (dayOfYear ~/ 7 + 1).toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,37 +38,132 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-import 'package:flutter/material.dart';
+      body: Consumer<DataProvider>(
+        builder: (context, dataProvider, child) {
+          final now = DateTime.now();
+          final todaySessions = dataProvider.getTodaySessions();
+          final upcomingAssignments = dataProvider.getUpcomingAssignments(7);
+          final attendancePercentage = dataProvider.getAttendancePercentage();
+          final pendingCount = dataProvider.getPendingAssignmentsCount();
+          final totalSessions = dataProvider.sessions.length;
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // All Selected Courses Dropdown
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C4A7E),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'All Selected Courses',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                    ],
+                  ),
+                ),
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // ... previous app bar code ...
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Stats Row
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(child: _buildStatBox(count: '0', label: 'Active\nProjects')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildStatBox(count: '0', label: 'Code-\nins/outs')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildStatBox(count: '0', label: 'Upcoming\nAgains')),
-                ],
-              ),
+                // ATRISK WARNING Button
+                if (attendancePercentage < 75)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.warning, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'ATRISK WARNING',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+
+                // Stats Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatBox(
+                          count: pendingCount.toString(),
+                          label: 'Active\nProjects',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatBox(
+                          count: totalSessions.toString(),
+                          label: 'Code-\nins/outs',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatBox(
+                          count: upcomingAssignments.length.toString(),
+                          label: 'Upcoming\nAgains',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Today's Classes Section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const Text(
+                    'Today\'s Classes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Class/Assignment List
+                _buildClassItem(title: 'ASSIGNMENT', hasArrow: true),
+                _buildClassItem(title: 'Quiz 1', hasArrow: false),
+                _buildClassItem(
+                  title: 'Assignment 2',
+                  subtitle: 'Due Feb 26',
+                  hasArrow: false,
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -92,121 +196,6 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-import 'package:flutter/material.dart';
-
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // ... app bar code ...
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // All Selected Courses Dropdown
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2C4A7E),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'All Selected Courses',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                ],
-              ),
-            ),
-
-            // ATRISK WARNING Button
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE53935),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.warning, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'ATRISK WARNING',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ... stats row from previous commit ...
-          ],
-        ),
-      ),
-    );
-  }
-}
-import 'package:flutter/material.dart';
-
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // ... app bar code ...
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ... dropdown and warning banner from previous commit ...
-
-            // Today's Classes Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: const Text(
-                'Today\'s Classes',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Class/Assignment List
-            _buildClassItem(title: 'ASSIGNMENT', hasArrow: true),
-            _buildClassItem(title: 'Quiz 1', hasArrow: false),
-            _buildClassItem(
-              title: 'Assignment 2',
-              subtitle: 'Due Feb 26',
-              hasArrow: false,
-            ),
-          ],
-        ),
       ),
     );
   }
