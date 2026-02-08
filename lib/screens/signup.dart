@@ -183,3 +183,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
+
+// Add after the course selection widgets:
+const SizedBox(height: 24),
+// Sign Up Button
+SizedBox(
+  width: double.infinity,
+  height: 50,
+  child: ElevatedButton(
+    onPressed: () {
+      // Validation will be added in next commit
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFFFB800),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    ),
+    child: const Text(
+      'Sign Up',
+      style: TextStyle(
+        color: Color(0xFF1A2C5A),
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  ),
+),
