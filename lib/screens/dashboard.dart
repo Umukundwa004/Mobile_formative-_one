@@ -169,3 +169,88 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
+import 'package:flutter/material.dart';
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // ... app bar code ...
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // ... dropdown and warning banner from previous commit ...
+
+            // Today's Classes Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: const Text(
+                'Today\'s Classes',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Class/Assignment List
+            _buildClassItem(title: 'ASSIGNMENT', hasArrow: true),
+            _buildClassItem(title: 'Quiz 1', hasArrow: false),
+            _buildClassItem(
+              title: 'Assignment 2',
+              subtitle: 'Due Feb 26',
+              hasArrow: false,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClassItem({
+    required String title,
+    String? subtitle,
+    bool hasArrow = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF1A2C5A),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (hasArrow) Icon(Icons.chevron_right, color: Colors.grey[400]),
+        ],
+      ),
+    );
+  }
+}
