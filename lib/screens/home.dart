@@ -1,21 +1,8 @@
 import 'package:flutter/material.dart';
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A2C5A),
-    );
-  }
-}
-import 'package:flutter/material.dart';
+import 'dashboard.dart';
+import 'assignments.dart';
+import 'announcements.dart';
+import 'risk_status.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,10 +14,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  final List<Widget> _screens = [
+    const DashboardScreen(),
+    const AssignmentsScreen(),
+    const AnnouncementsScreen(),
+    const RiskStatusScreen(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A2C5A),
+      body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -62,74 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Planners',
           ),
         ],
-      ),
-    );
-  }
-}
-import 'package:flutter/material.dart';
-import 'dashboard.dart';
-import 'assignments.dart';
-import 'announcements.dart';
-import 'risk_status.dart';
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    Container(child: Text('Dashboard Placeholder')),
-    Container(child: Text('Assignments Placeholder')),
-    Container(child: Text('Announcements Placeholder')),
-    Container(child: Text('Risk Status Placeholder')),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A2C5A),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        // ... existing navigation bar code ...
-      ),
-    );
-  }
-}
-import 'package:flutter/material.dart';
-import 'dashboard.dart';
-import 'assignments.dart';
-import 'announcements.dart';
-import 'risk_status.dart';
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const AssignmentsScreen(),
-    const AnnouncementsScreen(),
-    const RiskStatusScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A2C5A),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        // ... existing navigation bar code ...
       ),
     );
   }
