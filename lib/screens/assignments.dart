@@ -29,6 +29,10 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final horizontalPadding = isSmallScreen ? 12.0 : 16.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF1A2C5A),
       appBar: AppBar(
@@ -38,11 +42,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Assignments',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: isSmallScreen ? 18 : 20,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -57,8 +61,8 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
               indicatorWeight: 3,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white60,
-              labelStyle: const TextStyle(
-                fontSize: 14,
+              labelStyle: TextStyle(
+                fontSize: isSmallScreen ? 13 : 14,
                 fontWeight: FontWeight.w600,
               ),
               tabs: const [
@@ -80,7 +84,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
               const SizedBox(height: 16),
               // Create Group Assignment Button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

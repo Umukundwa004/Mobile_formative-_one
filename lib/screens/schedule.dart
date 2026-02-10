@@ -15,16 +15,20 @@ class ScheduleScreen extends StatefulWidget {
 class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final horizontalPadding = isSmallScreen ? 12.0 : 16.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF1A2C5A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A2C5A),
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Schedule',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: isSmallScreen ? 18 : 20,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -32,15 +36,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
       body: Consumer<DataProvider>(
         builder: (context, dataProvider, child) {
-          final sessions = [...dataProvider.sessions];
-          sessions.sort((a, b) => a.date.compareTo(b.date));
+          final sessions = dataProvider.getWeekSessions();
+          final weekRangeLabel = _getWeekRangeLabel();
 
           return Column(
             children: [
               const SizedBox(height: 16),
               // Add Session Button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -67,12 +71,40 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'This Week',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        weekRangeLabel,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               // Sessions List
               Expanded(
                 child: sessions.isEmpty
                     ? Center(
                         child: Text(
-                          'No sessions scheduled',
+                          'No sessions scheduled this week',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.7),
                             fontSize: 16,
@@ -558,6 +590,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
             ElevatedButton(
               onPressed: () {
+                if (titleController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a session title'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                if (!_isEndTimeAfterStart(startTime, endTime)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('End time must be after start time'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 if (titleController.text.isNotEmpty) {
                   final session = AcademicSession(
                     id: const Uuid().v4(),
@@ -574,13 +625,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     listen: false,
                   ).addSession(session);
                   Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a session title'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -600,19 +644,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final locationController = TextEditingController(text: session.location);
     DateTime selectedDate = session.date;
 
-    // Parse the time strings
-    final startTimeParts = session.startTime.split(':');
-    final endTimeParts = session.endTime.split(':');
-
-    TimeOfDay startTime = TimeOfDay(
-      hour: int.parse(startTimeParts[0].trim().split(' ')[0]),
-      minute: int.parse(startTimeParts[1].trim().split(' ')[0]),
-    );
-
-    TimeOfDay endTime = TimeOfDay(
-      hour: int.parse(endTimeParts[0].trim().split(' ')[0]),
-      minute: int.parse(endTimeParts[1].trim().split(' ')[0]),
-    );
+    TimeOfDay startTime = _parseTimeOfDay(session.startTime);
+    TimeOfDay endTime = _parseTimeOfDay(session.endTime);
 
     String sessionType = session.sessionType;
 
@@ -865,6 +898,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
             ElevatedButton(
               onPressed: () {
+                if (titleController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a session title'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                if (!_isEndTimeAfterStart(startTime, endTime)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('End time must be after start time'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 if (titleController.text.isNotEmpty) {
                   final updatedSession = AcademicSession(
                     id: session.id,
@@ -881,13 +933,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     listen: false,
                   ).updateSession(session.id, updatedSession);
                   Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a session title'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -900,6 +945,36 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
       ),
     );
+  }
+
+  String _getWeekRangeLabel() {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    final formatter = DateFormat('MMM d');
+    return '${formatter.format(startOfWeek)} - ${formatter.format(endOfWeek)}';
+  }
+
+  bool _isEndTimeAfterStart(TimeOfDay start, TimeOfDay end) {
+    final startMinutes = start.hour * 60 + start.minute;
+    final endMinutes = end.hour * 60 + end.minute;
+    return endMinutes > startMinutes;
+  }
+
+  TimeOfDay _parseTimeOfDay(String value) {
+    final trimmed = value.trim();
+    try {
+      final time = DateFormat('HH:mm').parseStrict(trimmed);
+      return TimeOfDay(hour: time.hour, minute: time.minute);
+    } catch (_) {
+      // Fallback to locale time format like 9:00 AM.
+    }
+    try {
+      final time = DateFormat.jm().parseStrict(trimmed);
+      return TimeOfDay(hour: time.hour, minute: time.minute);
+    } catch (_) {
+      return TimeOfDay.now();
+    }
   }
 
   void _confirmDelete(BuildContext context, String id, DataProvider provider) {

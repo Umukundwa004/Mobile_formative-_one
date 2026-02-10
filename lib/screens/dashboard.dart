@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data_provider.dart';
-import '../models/models.dart';
+import 'attendance_detail.dart';
+import 'profile.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  String _getWeekNumber(DateTime date) {
-    final jan4 = DateTime(date.year, 1, 4);
-    final dayOfYear = date.difference(jan4).inDays;
-    return (dayOfYear ~/ 7 + 1).toString();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF1A2C5A),
       appBar: AppBar(
@@ -23,29 +22,35 @@ class DashboardScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Dashboard',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: isSmallScreen ? 18 : 20,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
           ),
         ],
       ),
       body: Consumer<DataProvider>(
         builder: (context, dataProvider, child) {
-          final now = DateTime.now();
           final todaySessions = dataProvider.getTodaySessions();
-          final upcomingAssignments = dataProvider.getUpcomingAssignments(7);
+          final upcomingAssignments = dataProvider.getUpcomingDueAssignments();
           final attendancePercentage = dataProvider.getAttendancePercentage();
           final pendingCount = dataProvider.getPendingAssignmentsCount();
-          final totalSessions = dataProvider.sessions.length;
+          final formattedDate = dataProvider.getFormattedDate();
+          final academicWeek = dataProvider.getCurrentAcademicWeek();
+          final attendanceLabel = '${attendancePercentage.toStringAsFixed(0)}%';
 
           return SingleChildScrollView(
             child: Column(
@@ -53,7 +58,7 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 // All Selected Courses Dropdown
                 Container(
-                  margin: const EdgeInsets.all(16),
+                  margin: EdgeInsets.all(horizontalPadding),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -65,11 +70,11 @@ class DashboardScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'All Selected Courses',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 12 : 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -81,7 +86,7 @@ class DashboardScreen extends StatelessWidget {
                 // ATRISK WARNING Button
                 if (attendancePercentage < 75)
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -94,11 +99,11 @@ class DashboardScreen extends StatelessWidget {
                         children: [
                           Icon(Icons.warning, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'ATRISK WARNING',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: isSmallScreen ? 12 : 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -110,56 +115,141 @@ class DashboardScreen extends StatelessWidget {
 
                 // Stats Row
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatBox(
-                          count: pendingCount.toString(),
-                          label: 'Active\nProjects',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatBox(
-                          count: totalSessions.toString(),
-                          label: 'Code-\nins/outs',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatBox(
-                          count: upcomingAssignments.length.toString(),
-                          label: 'Upcoming\nAgains',
-                        ),
-                      ),
-                    ],
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final boxSpacing = isSmallScreen ? 8.0 : 12.0;
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatBox(
+                              count: pendingCount.toString(),
+                              label: 'Pending\nAssignments',
+                              isSmallScreen: isSmallScreen,
+                            ),
+                          ),
+                          SizedBox(width: boxSpacing),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const AttendanceDetailScreen(),
+                                  ),
+                                );
+                              },
+                              child: _buildStatBox(
+                                count: attendanceLabel,
+                                label: 'Attendance',
+                                isClickable: true,
+                                isSmallScreen: isSmallScreen,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: boxSpacing),
+                          Expanded(
+                            child: _buildStatBox(
+                              count: upcomingAssignments.length.toString(),
+                              label: 'Due Next\n7 Days',
+                              isSmallScreen: isSmallScreen,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // Today's Classes Section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Text(
-                    'Today\'s Classes',
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: Text(
+                    'Today\'s Sessions',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: isSmallScreen ? 14 : 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // Class/Assignment List
-                _buildClassItem(title: 'ASSIGNMENT', hasArrow: true),
-                _buildClassItem(title: 'Quiz 1', hasArrow: false),
-                _buildClassItem(
-                  title: 'Assignment 2',
-                  subtitle: 'Due Feb 26',
-                  hasArrow: false,
+                // Date and Academic Week
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C4A7E),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        formattedDate,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isSmallScreen ? 12 : 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        academicWeek,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: isSmallScreen ? 11 : 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 12),
+
+                if (todaySessions.isEmpty)
+                  _buildEmptyState(context, 'No sessions scheduled for today')
+                else
+                  ...todaySessions.map(
+                    (session) => _buildClassItem(
+                      context,
+                      title: session.title,
+                      subtitle: '${session.startTime} - ${session.endTime}',
+                    ),
+                  ),
+
+                const SizedBox(height: 20),
+
+                // Upcoming Assignments Section
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: Text(
+                    'Assignments Due Soon',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isSmallScreen ? 14 : 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                if (upcomingAssignments.isEmpty)
+                  _buildEmptyState(
+                    context,
+                    'No assignments due in the next 7 days',
+                  )
+                else
+                  ...upcomingAssignments.map(
+                    (assignment) => _buildClassItem(
+                      context,
+                      title: assignment.title,
+                      subtitle:
+                          'Due ${assignment.dueDate.day}/${assignment.dueDate.month}',
+                    ),
+                  ),
               ],
             ),
           );
@@ -168,30 +258,51 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatBox({required String count, required String label}) {
+  Widget _buildStatBox({
+    required String count,
+    required String label,
+    bool isClickable = false,
+    bool isSmallScreen = false,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
       decoration: BoxDecoration(
         color: const Color(0xFF2C4A7E),
         borderRadius: BorderRadius.circular(8),
+        border: isClickable
+            ? Border.all(color: const Color(0xFFFFB800), width: 1.5)
+            : null,
       ),
       child: Column(
         children: [
-          Text(
-            count,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                count,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isSmallScreen ? 20 : 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isClickable) ...[
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Color(0xFFFFB800),
+                  size: 14,
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white70,
-              fontSize: 11,
+              fontSize: isSmallScreen ? 10 : 11,
               height: 1.2,
             ),
           ),
@@ -200,13 +311,17 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildClassItem({
+  Widget _buildClassItem(
+    BuildContext context, {
     required String title,
     String? subtitle,
-    bool hasArrow = false,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
+    final isSmallScreen = screenWidth < 360;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -221,9 +336,9 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Color(0xFF1A2C5A),
-                    fontSize: 14,
+                  style: TextStyle(
+                    color: const Color(0xFF1A2C5A),
+                    fontSize: isSmallScreen ? 13 : 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -231,14 +346,38 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: isSmallScreen ? 11 : 12,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
-          if (hasArrow) Icon(Icons.chevron_right, color: Colors.grey[400]),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, String message) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(
+          color: Color(0xFF1A2C5A),
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

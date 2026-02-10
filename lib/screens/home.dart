@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dashboard.dart';
 import 'assignments.dart';
+import 'schedule.dart';
 import 'announcements.dart';
-import 'risk_status.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,12 +17,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const AssignmentsScreen(),
+    const ScheduleScreen(),
     const AnnouncementsScreen(),
-    const RiskStatusScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final iconSize = isSmallScreen ? 20.0 : 22.0;
+    final fontSize = isSmallScreen ? 9.0 : 10.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF1A2C5A),
       body: _screens[_selectedIndex],
@@ -37,24 +42,24 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFF1A2C5A),
         selectedItemColor: const Color(0xFFFFB800),
         unselectedItemColor: Colors.white54,
-        selectedLabelStyle: const TextStyle(fontSize: 10),
-        unselectedLabelStyle: const TextStyle(fontSize: 10),
-        items: const [
+        selectedLabelStyle: TextStyle(fontSize: fontSize),
+        unselectedLabelStyle: TextStyle(fontSize: fontSize),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today, size: 22),
-            label: 'Summaries',
+            icon: Icon(Icons.dashboard_outlined, size: iconSize),
+            label: 'Dashboard',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.quiz_outlined, size: 22),
-            label: 'Quizes',
+            icon: Icon(Icons.assignment_outlined, size: iconSize),
+            label: 'Assignments',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.announcement_outlined, size: 22),
+            icon: Icon(Icons.schedule, size: iconSize),
+            label: 'Schedule',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.announcement_outlined, size: iconSize),
             label: 'Announcements',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline, size: 22),
-            label: 'Planners',
           ),
         ],
       ),

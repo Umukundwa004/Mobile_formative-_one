@@ -7,6 +7,10 @@ class RiskStatusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final horizontalPadding = isSmallScreen ? 16.0 : 20.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B1F3B),
       appBar: AppBar(
@@ -16,33 +20,23 @@ class RiskStatusScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Your Risk Status',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: isSmallScreen ? 18 : 20,
             fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: Consumer<DataProvider>(
         builder: (context, dataProvider, child) {
-          final attendancePercentage = dataProvider.getAttendancePercentage();
-          final pendingAssignments = dataProvider.getPendingAssignmentsCount();
-          final totalAssignments = dataProvider.assignments.length;
-          final assignmentPercentage = totalAssignments > 0
-              ? ((totalAssignments - pendingAssignments) /
-                    totalAssignments *
-                    100)
-              : 0.0;
-
-          // Calculate average (simple average of attendance and assignment completion)
-          final averagePercentage =
-              (attendancePercentage + assignmentPercentage) / 2;
-
           return SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 16,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

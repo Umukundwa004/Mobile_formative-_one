@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 class DataProvider with ChangeNotifier {
   List<Assignment> assignments = [];
   List<AcademicSession> sessions = [];
+  String userName = 'Alex Johnson';
+  String userEmail = 'alex.johnson@university.edu';
 
   DataProvider() {
     _initializeSampleData();
@@ -154,28 +156,35 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  DateTime _startOfWeek(DateTime date) {
+    final dateOnly = _dateOnly(date);
+    final daysFromMonday = dateOnly.weekday - DateTime.monday;
+    return dateOnly.subtract(Duration(days: daysFromMonday));
+  }
+
   List<AcademicSession> getTodaySessions() {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = _dateOnly(now);
     return sessions
-        .where(
-          (s) =>
-              DateTime(
-                s.date.year,
-                s.date.month,
-                s.date.day,
-              ).compareTo(today) ==
-              0,
-        )
+        .where((s) => _dateOnly(s.date).compareTo(today) == 0)
         .toList();
   }
 
   List<AcademicSession> getWeekSessions() {
     final now = DateTime.now();
-    final endOfWeek = now.add(const Duration(days: 7));
-    return sessions
-        .where((s) => s.date.isAfter(now) && s.date.isBefore(endOfWeek))
-        .toList();
+    final startOfWeek = _startOfWeek(now);
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    final weeklySessions = sessions.where((s) {
+      final sessionDate = _dateOnly(s.date);
+      return !sessionDate.isBefore(startOfWeek) &&
+          !sessionDate.isAfter(endOfWeek);
+    }).toList();
+    weeklySessions.sort((a, b) => a.date.compareTo(b.date));
+    return weeklySessions;
   }
 
   // Attendance calculation
@@ -220,5 +229,12 @@ class DataProvider with ChangeNotifier {
         )
         .toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+  }
+
+  // Update user profile
+  void updateUserProfile(String name, String email) {
+    userName = name;
+    userEmail = email;
+    notifyListeners();
   }
 }
