@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'services/assignment_dao.dart';
 import 'services/academic_session_dao.dart';
 import 'services/user_profile_dao.dart';
+import 'dart:io' show Platform;
 
 class DataProvider with ChangeNotifier {
   List<Assignment> assignments = [];
@@ -18,9 +19,24 @@ class DataProvider with ChangeNotifier {
   late UserProfileDAO userProfileDAO;
 
   bool _isInitialized = false;
+  bool _isWeb = false;
 
   DataProvider() {
     _initializeDAOs();
+    _isWeb = _checkIfWeb();
+  }
+
+  bool _checkIfWeb() {
+    try {
+      return !Platform.isAndroid &&
+          !Platform.isIOS &&
+          !Platform.isWindows &&
+          !Platform.isLinux &&
+          !Platform.isMacOS;
+    } catch (e) {
+      // If we can't determine platform, assume it might be web
+      return true;
+    }
   }
 
   void _initializeDAOs() {
@@ -34,6 +50,16 @@ class DataProvider with ChangeNotifier {
     if (_isInitialized) return;
 
     try {
+      if (_isWeb) {
+        // On web, skip database and use in-memory data
+        print(
+          'Running on web platform - database disabled, using in-memory data',
+        );
+        _isInitialized = true;
+        notifyListeners();
+        return;
+      }
+
       // Load assignments from database
       assignments = await assignmentDAO.getAllAssignments();
 
@@ -54,10 +80,15 @@ class DataProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error initializing data: $e');
+      // Continue with in-memory data
+      _isInitialized = true;
+      notifyListeners();
     }
   }
 
   Future<void> _initializeDefaultUserProfile() async {
+    if (_isWeb) return;
+
     final profile = UserProfile(
       id: 'default_user',
       name: userName,
@@ -71,7 +102,94 @@ class DataProvider with ChangeNotifier {
     final now = DateTime.now();
     const uuid = Uuid();
 
-    // Check if data already exists
+    // Check if data already exists (skip on web)
+    if (_isWeb) {
+      // Initialize sample data in memory for web
+      if (assignments.isNotEmpty) return;
+
+      assignments = [
+        Assignment(
+          id: uuid.v4(),
+          title: 'Mobile App Development Project',
+          course: 'Introduction to Flutter Programming',
+          dueDate: now.add(const Duration(days: 3)),
+          priority: 'High',
+          isCompleted: false,
+        ),
+        Assignment(
+          id: uuid.v4(),
+          title: 'Assignment 2',
+          course: 'Web Development',
+          dueDate: now.add(const Duration(days: 5)),
+          priority: 'Medium',
+          isCompleted: false,
+        ),
+        Assignment(
+          id: uuid.v4(),
+          title: 'Group Project',
+          course: 'Mobile App (Flutter)',
+          dueDate: now.add(const Duration(days: 20)),
+          priority: 'Medium',
+          isCompleted: false,
+        ),
+        Assignment(
+          id: uuid.v4(),
+          title: 'Quiz 1',
+          course: 'Introduction to Linux',
+          dueDate: now.add(const Duration(days: 7)),
+          priority: 'Low',
+          isCompleted: true,
+        ),
+      ];
+
+      sessions = [
+        AcademicSession(
+          id: uuid.v4(),
+          title: 'Introduction to Linux',
+          date: now,
+          startTime: '09:00',
+          endTime: '10:30',
+          location: 'egypt',
+          sessionType: 'Class',
+          isPresent: true,
+        ),
+        AcademicSession(
+          id: uuid.v4(),
+          title: 'Flutter Programming',
+          date: now,
+          startTime: '11:00',
+          endTime: '12:30',
+          location: 'morocco',
+          sessionType: 'Class',
+          isPresent: true,
+        ),
+        AcademicSession(
+          id: uuid.v4(),
+          title: 'Web Development',
+          date: now.add(const Duration(days: 1)),
+          startTime: '14:00',
+          endTime: '15:30',
+          location: 'ethiopia',
+          sessionType: 'Class',
+          isPresent: false,
+        ),
+        AcademicSession(
+          id: uuid.v4(),
+          title: 'Mastery Session - Flutter',
+          date: now.add(const Duration(days: 2)),
+          startTime: '15:00',
+          endTime: '16:30',
+          location: 'liberia',
+          sessionType: 'In Person',
+          isPresent: false,
+        ),
+      ];
+
+      notifyListeners();
+      return;
+    }
+
+    // Database version (mobile)
     final existingAssignments = await assignmentDAO.getAllAssignments();
     if (existingAssignments.isNotEmpty) {
       return; // Data already exists
@@ -175,7 +293,9 @@ class DataProvider with ChangeNotifier {
   // Assignment methods
   Future<void> addAssignment(Assignment assignment) async {
     assignments.add(assignment);
-    await assignmentDAO.insertAssignment(assignment);
+    if (!_isWeb) {
+      await assignmentDAO.insertAssignment(assignment);
+    }
     notifyListeners();
   }
 
@@ -183,21 +303,27 @@ class DataProvider with ChangeNotifier {
     final index = assignments.indexWhere((a) => a.id == id);
     if (index != -1) {
       assignments[index] = updatedAssignment;
-      await assignmentDAO.updateAssignment(updatedAssignment);
+      if (!_isWeb) {
+        await assignmentDAO.updateAssignment(updatedAssignment);
+      }
       notifyListeners();
     }
   }
 
   Future<void> deleteAssignment(String id) async {
     assignments.removeWhere((a) => a.id == id);
-    await assignmentDAO.deleteAssignment(id);
+    if (!_isWeb) {
+      await assignmentDAO.deleteAssignment(id);
+    }
     notifyListeners();
   }
 
   Future<void> toggleAssignmentStatus(String id) async {
     final assignment = assignments.firstWhere((a) => a.id == id);
     assignment.isCompleted = !assignment.isCompleted;
-    await assignmentDAO.updateAssignment(assignment);
+    if (!_isWeb) {
+      await assignmentDAO.updateAssignment(assignment);
+    }
     notifyListeners();
   }
 
@@ -214,7 +340,9 @@ class DataProvider with ChangeNotifier {
   // Session methods
   Future<void> addSession(AcademicSession session) async {
     sessions.add(session);
-    await sessionDAO.insertSession(session);
+    if (!_isWeb) {
+      await sessionDAO.insertSession(session);
+    }
     notifyListeners();
   }
 
@@ -222,21 +350,27 @@ class DataProvider with ChangeNotifier {
     final index = sessions.indexWhere((s) => s.id == id);
     if (index != -1) {
       sessions[index] = updatedSession;
-      await sessionDAO.updateSession(updatedSession);
+      if (!_isWeb) {
+        await sessionDAO.updateSession(updatedSession);
+      }
       notifyListeners();
     }
   }
 
   Future<void> deleteSession(String id) async {
     sessions.removeWhere((s) => s.id == id);
-    await sessionDAO.deleteSession(id);
+    if (!_isWeb) {
+      await sessionDAO.deleteSession(id);
+    }
     notifyListeners();
   }
 
   Future<void> toggleAttendance(String id) async {
     final session = sessions.firstWhere((s) => s.id == id);
     session.isPresent = !session.isPresent;
-    await sessionDAO.updateSession(session);
+    if (!_isWeb) {
+      await sessionDAO.updateSession(session);
+    }
     notifyListeners();
   }
 
@@ -320,9 +454,11 @@ class DataProvider with ChangeNotifier {
     userName = name;
     userEmail = email;
 
-    // Save to database
-    final profile = UserProfile(id: 'default_user', name: name, email: email);
-    await userProfileDAO.saveUserProfile(profile);
+    if (!_isWeb) {
+      // Save to database only on mobile/desktop
+      final profile = UserProfile(id: 'default_user', name: name, email: email);
+      await userProfileDAO.saveUserProfile(profile);
+    }
     notifyListeners();
   }
 }

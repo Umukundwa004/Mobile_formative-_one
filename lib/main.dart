@@ -8,8 +8,14 @@ void main() async {
 
   // Initialize DataProvider
   final dataProvider = DataProvider();
-  await dataProvider.initializeData();
-  await dataProvider.initializeSampleData();
+
+  try {
+    await dataProvider.initializeData();
+    await dataProvider.initializeSampleData();
+  } catch (e) {
+    print('Database initialization error: $e');
+    // Continue anyway - data might be in-memory only
+  }
 
   runApp(MyApp(dataProvider: dataProvider));
 }
