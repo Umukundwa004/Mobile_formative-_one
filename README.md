@@ -152,7 +152,7 @@ dependencies:
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Umukundwa004/Mobile_formative-_one.git
 cd Mobile_formative-_one
 ```
 
@@ -233,3 +233,7 @@ This project is for educational purposes.
 ## Support
 
 For issues or questions, please contact the development team.
+## database
+
+database :SQLite
+
