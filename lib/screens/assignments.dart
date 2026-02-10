@@ -179,8 +179,8 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
         leading: GestureDetector(
-          onTap: () {
-            dataProvider.toggleAssignmentStatus(assignment.id);
+          onTap: () async {
+            await dataProvider.toggleAssignmentStatus(assignment.id);
           },
           child: Container(
             decoration: BoxDecoration(
@@ -277,12 +277,12 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
               ),
             ),
             PopupMenuItem(
-              onTap: () {
+              onTap: () async {
                 final dataProvider = Provider.of<DataProvider>(
                   context,
                   listen: false,
                 );
-                dataProvider.deleteAssignment(assignment.id);
+                await dataProvider.deleteAssignment(assignment.id);
               },
               child: const Row(
                 children: [
@@ -390,7 +390,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB800),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (title.isEmpty || course.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -403,7 +403,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
                       context,
                       listen: false,
                     );
-                    dataProvider.addAssignment(
+                    await dataProvider.addAssignment(
                       Assignment(
                         id: const Uuid().v4(),
                         title: title,
@@ -521,7 +521,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB800),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (title.isEmpty || course.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -534,7 +534,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
                       context,
                       listen: false,
                     );
-                    dataProvider.updateAssignment(
+                    await dataProvider.updateAssignment(
                       assignment.id,
                       Assignment(
                         id: assignment.id,

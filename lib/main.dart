@@ -3,17 +3,26 @@ import 'package:provider/provider.dart';
 import './data_provider.dart';
 import './screens/signup.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize DataProvider
+  final dataProvider = DataProvider();
+  await dataProvider.initializeData();
+  await dataProvider.initializeSampleData();
+
+  runApp(MyApp(dataProvider: dataProvider));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final DataProvider dataProvider;
+
+  const MyApp({super.key, required this.dataProvider});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => DataProvider())],
+      providers: [ChangeNotifierProvider.value(value: dataProvider)],
       child: MaterialApp(
         title: 'Student Academic Platform',
         theme: ThemeData(

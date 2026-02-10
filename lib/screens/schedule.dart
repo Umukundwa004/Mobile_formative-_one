@@ -292,8 +292,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
                 const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: () {
-                    provider.toggleAttendance(session.id);
+                  onTap: () async {
+                    await provider.toggleAttendance(session.id);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -999,8 +999,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              provider.deleteSession(id);
+            onPressed: () async {
+              await provider.deleteSession(id);
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(

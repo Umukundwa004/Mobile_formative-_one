@@ -1,24 +1,86 @@
 import 'package:flutter/material.dart';
 import 'models/models.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+import 'services/assignment_dao.dart';
+import 'services/academic_session_dao.dart';
+import 'services/user_profile_dao.dart';
 
 class DataProvider with ChangeNotifier {
   List<Assignment> assignments = [];
   List<AcademicSession> sessions = [];
-  String userName = 'Alex Johnson';
-  String userEmail = 'alex.johnson@university.edu';
+  String userName = 'vestine UMUKUNDWA';
+  String userEmail = 'vestine.umukundwa@alu.com';
+
+  // Database DAOs
+  late AssignmentDAO assignmentDAO;
+  late AcademicSessionDAO sessionDAO;
+  late UserProfileDAO userProfileDAO;
+
+  bool _isInitialized = false;
 
   DataProvider() {
-    _initializeSampleData();
+    _initializeDAOs();
   }
 
-  void _initializeSampleData() {
+  void _initializeDAOs() {
+    assignmentDAO = AssignmentDAO();
+    sessionDAO = AcademicSessionDAO();
+    userProfileDAO = UserProfileDAO();
+  }
+
+  // Initialize data from database
+  Future<void> initializeData() async {
+    if (_isInitialized) return;
+
+    try {
+      // Load assignments from database
+      assignments = await assignmentDAO.getAllAssignments();
+
+      // Load sessions from database
+      sessions = await sessionDAO.getAllSessions();
+
+      // Load user profile from database
+      final userProfile = await userProfileDAO.getFirstUserProfile();
+      if (userProfile != null) {
+        userName = userProfile.name;
+        userEmail = userProfile.email;
+      } else {
+        // If no user profile exists, save the default one
+        await _initializeDefaultUserProfile();
+      }
+
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      print('Error initializing data: $e');
+    }
+  }
+
+  Future<void> _initializeDefaultUserProfile() async {
+    final profile = UserProfile(
+      id: 'default_user',
+      name: userName,
+      email: userEmail,
+    );
+    await userProfileDAO.saveUserProfile(profile);
+  }
+
+  // Initialize with sample data (optional - for first time setup)
+  Future<void> initializeSampleData() async {
     final now = DateTime.now();
+    const uuid = Uuid();
+
+    // Check if data already exists
+    final existingAssignments = await assignmentDAO.getAllAssignments();
+    if (existingAssignments.isNotEmpty) {
+      return; // Data already exists
+    }
 
     // Sample assignments
-    assignments = [
+    final sampleAssignments = [
       Assignment(
-        id: '1',
+        id: uuid.v4(),
         title: 'Mobile App Development Project',
         course: 'Introduction to Flutter Programming',
         dueDate: now.add(const Duration(days: 3)),
@@ -26,7 +88,7 @@ class DataProvider with ChangeNotifier {
         isCompleted: false,
       ),
       Assignment(
-        id: '2',
+        id: uuid.v4(),
         title: 'Assignment 2',
         course: 'Web Development',
         dueDate: now.add(const Duration(days: 5)),
@@ -34,7 +96,7 @@ class DataProvider with ChangeNotifier {
         isCompleted: false,
       ),
       Assignment(
-        id: '3',
+        id: uuid.v4(),
         title: 'Group Project',
         course: 'Mobile App (Flutter)',
         dueDate: now.add(const Duration(days: 20)),
@@ -42,7 +104,7 @@ class DataProvider with ChangeNotifier {
         isCompleted: false,
       ),
       Assignment(
-        id: '4',
+        id: uuid.v4(),
         title: 'Quiz 1',
         course: 'Introduction to Linux',
         dueDate: now.add(const Duration(days: 7)),
@@ -52,72 +114,90 @@ class DataProvider with ChangeNotifier {
     ];
 
     // Sample sessions
-    sessions = [
+    final sampleSessions = [
       AcademicSession(
-        id: '1',
+        id: uuid.v4(),
         title: 'Introduction to Linux',
         date: now,
         startTime: '09:00',
         endTime: '10:30',
-        location: 'Room 101',
+        location: 'egypt',
         sessionType: 'Class',
         isPresent: true,
       ),
       AcademicSession(
-        id: '2',
+        id: uuid.v4(),
         title: 'Flutter Programming',
         date: now,
         startTime: '11:00',
         endTime: '12:30',
-        location: 'Lab A',
+        location: 'morocco',
         sessionType: 'Class',
         isPresent: true,
       ),
       AcademicSession(
-        id: '3',
+        id: uuid.v4(),
         title: 'Web Development',
         date: now.add(const Duration(days: 1)),
         startTime: '14:00',
         endTime: '15:30',
-        location: 'Room 205',
+        location: 'ethiopia',
         sessionType: 'Class',
         isPresent: false,
       ),
       AcademicSession(
-        id: '4',
+        id: uuid.v4(),
         title: 'Mastery Session - Flutter',
         date: now.add(const Duration(days: 2)),
         startTime: '15:00',
         endTime: '16:30',
-        location: 'Library',
-        sessionType: 'Mastery Session',
+        location: 'liberia',
+        sessionType: 'In Person',
         isPresent: false,
       ),
     ];
-  }
 
-  // Assignment methods
-  void addAssignment(Assignment assignment) {
-    assignments.add(assignment);
+    // Save to database
+    for (var assignment in sampleAssignments) {
+      await assignmentDAO.insertAssignment(assignment);
+    }
+
+    for (var session in sampleSessions) {
+      await sessionDAO.insertSession(session);
+    }
+
+    // Update in-memory lists
+    assignments = sampleAssignments;
+    sessions = sampleSessions;
     notifyListeners();
   }
 
-  void updateAssignment(String id, Assignment updatedAssignment) {
+  // Assignment methods
+  Future<void> addAssignment(Assignment assignment) async {
+    assignments.add(assignment);
+    await assignmentDAO.insertAssignment(assignment);
+    notifyListeners();
+  }
+
+  Future<void> updateAssignment(String id, Assignment updatedAssignment) async {
     final index = assignments.indexWhere((a) => a.id == id);
     if (index != -1) {
       assignments[index] = updatedAssignment;
+      await assignmentDAO.updateAssignment(updatedAssignment);
       notifyListeners();
     }
   }
 
-  void deleteAssignment(String id) {
+  Future<void> deleteAssignment(String id) async {
     assignments.removeWhere((a) => a.id == id);
+    await assignmentDAO.deleteAssignment(id);
     notifyListeners();
   }
 
-  void toggleAssignmentStatus(String id) {
+  Future<void> toggleAssignmentStatus(String id) async {
     final assignment = assignments.firstWhere((a) => a.id == id);
     assignment.isCompleted = !assignment.isCompleted;
+    await assignmentDAO.updateAssignment(assignment);
     notifyListeners();
   }
 
@@ -132,27 +212,31 @@ class DataProvider with ChangeNotifier {
   }
 
   // Session methods
-  void addSession(AcademicSession session) {
+  Future<void> addSession(AcademicSession session) async {
     sessions.add(session);
+    await sessionDAO.insertSession(session);
     notifyListeners();
   }
 
-  void updateSession(String id, AcademicSession updatedSession) {
+  Future<void> updateSession(String id, AcademicSession updatedSession) async {
     final index = sessions.indexWhere((s) => s.id == id);
     if (index != -1) {
       sessions[index] = updatedSession;
+      await sessionDAO.updateSession(updatedSession);
       notifyListeners();
     }
   }
 
-  void deleteSession(String id) {
+  Future<void> deleteSession(String id) async {
     sessions.removeWhere((s) => s.id == id);
+    await sessionDAO.deleteSession(id);
     notifyListeners();
   }
 
-  void toggleAttendance(String id) {
+  Future<void> toggleAttendance(String id) async {
     final session = sessions.firstWhere((s) => s.id == id);
     session.isPresent = !session.isPresent;
+    await sessionDAO.updateSession(session);
     notifyListeners();
   }
 
@@ -232,9 +316,13 @@ class DataProvider with ChangeNotifier {
   }
 
   // Update user profile
-  void updateUserProfile(String name, String email) {
+  Future<void> updateUserProfile(String name, String email) async {
     userName = name;
     userEmail = email;
+
+    // Save to database
+    final profile = UserProfile(id: 'default_user', name: name, email: email);
+    await userProfileDAO.saveUserProfile(profile);
     notifyListeners();
   }
 }
