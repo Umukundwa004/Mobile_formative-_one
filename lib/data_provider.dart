@@ -52,9 +52,6 @@ class DataProvider with ChangeNotifier {
     try {
       if (_isWeb) {
         // On web, skip database and use in-memory data
-        print(
-          'Running on web platform - database disabled, using in-memory data',
-        );
         _isInitialized = true;
         notifyListeners();
         return;

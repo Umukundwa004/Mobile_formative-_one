@@ -83,10 +83,10 @@ lib/
 #### Attendance Detail (`attendance_detail.dart`)
 
 - Attendance percentage with color coding
-- Metric cards: Attendance Rate, Present Sessions, Absent Sessions
+- Metric cards: Attendance Rate, Present Sessions, Absent Sessions.
 - Warning banner if attendance < 75%
-- "Get Help" button
-- Complete session history with present/absent indicators
+- "Get Help" button.
+- Complete session history with present/absent indicators.
 
 #### Announcements (`announcements.dart`)
 
