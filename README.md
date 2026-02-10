@@ -179,7 +179,36 @@ flutter run -d chrome
 ```bash
 flutter run -d <device-id>
 ```
+## Troubleshooting
 
+### Common Issues
+
+**Issue: `flutter pub get` fails**
+```bash
+# Clear pub cache and retry
+flutter clean
+flutter pub cache repair
+flutter pub get
+```
+
+**Issue: App won't build on Android**
+```bash
+# Update Gradle wrapper
+cd android
+./gradlew wrapper --gradle-version=7.5
+cd ..
+flutter clean
+flutter build apk
+```
+
+**Issue: SQLite database errors**
+- Ensure `sqflite` dependency is properly installed
+- Check database file permissions
+- Clear app data and reinstall
+
+**Issue: Provider state not updating**
+- Ensure `ChangeNotifierProvider` is wrapped around MaterialApp
+- Check that `notifyListeners()` is called after data changes
 ## Usage
 
 ### Dashboard Navigation
