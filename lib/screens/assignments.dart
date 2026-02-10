@@ -366,7 +366,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField(
-                      value: priority,
+                      initialValue: priority,
                       items: ['High', 'Medium', 'Low']
                           .map(
                             (p) => DropdownMenuItem(value: p, child: Text(p)),
@@ -497,7 +497,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen>
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField(
-                      value: priority,
+                      initialValue: priority,
                       items: ['High', 'Medium', 'Low']
                           .map(
                             (p) => DropdownMenuItem(value: p, child: Text(p)),
